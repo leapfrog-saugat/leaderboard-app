@@ -1,57 +1,64 @@
-import React, { useEffect, useState } from "react";
-import { Card, CardContent } from "../components/ui/card";
-import { Button } from "../components/ui/button";
+import React, { useEffect, useState } from 'react';
+import { Card, CardContent } from '../components/ui/card';
+import { Button } from '../components/ui/button';
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
-} from "../components/ui/table";
-import { Input } from "../components/ui/input";
-import { Trash2 } from "lucide-react";
+  TableRow,
+} from '../components/ui/table';
+import { Input } from '../components/ui/input';
+import { Trash2 } from 'lucide-react';
 
 const categories = [
-  "Foundation Models",
-  "Open Source Models",
-  "Code Generation",
-  "Multimodal Capabilities",
-  "Search/Knowledge Integration",
-  "Enterprise Adoption",
-  "Speed/Latency",
-  "Accuracy/Evaluation Benchmarks",
-  "Tool Ecosystem",
-  "Safety & Alignment"
+  'Foundation Models',
+  'Open Source Models',
+  'Code Generation',
+  'Multimodal Capabilities',
+  'Search/Knowledge Integration',
+  'Enterprise Adoption',
+  'Speed/Latency',
+  'Accuracy/Evaluation Benchmarks',
+  'Tool Ecosystem',
+  'Safety & Alignment',
 ];
+
+const generateId = () => '_' + Math.random().toString(36).substr(2, 9);
 
 export default function AIDashboard() {
   const [entries, setEntries] = useState(() => {
-    const saved = localStorage.getItem("aiLeaderboardEntries");
-    return saved
+    const saved = localStorage.getItem('aiLeaderboardEntries');
+    const initial = saved
       ? JSON.parse(saved)
-      : [
-          {
-            date: new Date(),
-            category: categories[0],
-            leader: "",
-            runnerUp: "",
-            notes: ""
-          }
-        ];
+      : [{
+          date: new Date(),
+          category: categories[0],
+          leader: '',
+          runnerUp: '',
+          notes: '',
+        }];
+    return initial.map(entry => ({
+      ...entry,
+      id: entry.id || generateId(),
+    }));
   });
 
-  const [filterCategory, setFilterCategory] = useState("");
-  const [sortBy, setSortBy] = useState("date");
-  const [searchText, setSearchText] = useState("");
+  const [filterCategory, setFilterCategory] = useState('');
+  const [sortBy, setSortBy] = useState('date');
+  const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
-    localStorage.setItem("aiLeaderboardEntries", JSON.stringify(entries));
+    localStorage.setItem('aiLeaderboardEntries', JSON.stringify(entries));
   }, [entries]);
 
-  const handleChange = (index, key, value) => {
-    const updated = [...entries];
-    updated[index][key] = key === "date" ? new Date(value) : value;
+  const handleChange = (id, key, value) => {
+    const updated = entries.map(entry =>
+      entry.id === id
+        ? { ...entry, [key]: key === 'date' ? new Date(value) : value }
+        : entry
+    );
     setEntries(updated);
   };
 
@@ -59,26 +66,27 @@ export default function AIDashboard() {
     setEntries([
       ...entries,
       {
+        id: generateId(),
         date: new Date(),
         category: categories[0],
-        leader: "",
-        runnerUp: "",
-        notes: ""
-      }
+        leader: '',
+        runnerUp: '',
+        notes: '',
+      },
     ]);
   };
 
-  const deleteRow = (index) => {
-    const updated = entries.filter((_, i) => i !== index);
+  const deleteRow = (id) => {
+    const updated = entries.filter(entry => entry.id !== id);
     setEntries(updated);
   };
 
   const getLeaderColor = (leader) => {
-    if (!leader) return "text-black";
+    if (!leader) return 'text-black';
     const top = entries.filter((e) => e.leader === leader).length;
-    if (top > 3) return "text-green-600 font-semibold";
-    if (top > 1) return "text-yellow-600";
-    return "text-black";
+    if (top > 3) return 'text-green-600 font-semibold';
+    if (top > 1) return 'text-yellow-600';
+    return 'text-black';
   };
 
   const filteredEntries = entries.filter((entry) => {
@@ -91,48 +99,48 @@ export default function AIDashboard() {
   });
 
   const sortedEntries = [...filteredEntries].sort((a, b) => {
-    if (sortBy === "date") return new Date(b.date) - new Date(a.date);
-    if (sortBy === "category") return a.category.localeCompare(b.category);
-    if (sortBy === "leader") return a.leader.localeCompare(b.leader);
+    if (sortBy === 'date') return new Date(b.date) - new Date(a.date);
+    if (sortBy === 'category') return a.category.localeCompare(b.category);
+    if (sortBy === 'leader') return a.leader.localeCompare(b.leader);
     return 0;
   });
 
   return (
-    <div className="p-6 grid gap-6">
+    <div className='p-6 grid gap-6'>
       <Card>
-        <CardContent className="p-4">
-          <h2 className="text-xl font-bold mb-4">Editable AI Leaderboard</h2>
-          <div className="mb-4 flex flex-wrap gap-2 items-center">
-            <label className="font-medium">Filter by Category:</label>
+        <CardContent className='p-4'>
+          <h2 className='text-xl font-bold mb-4'>Editable AI Leaderboard</h2>
+          <div className='mb-4 flex flex-wrap gap-2 items-center'>
+            <label className='font-medium'>Filter by Category:</label>
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
-              className="border rounded p-2"
+              className='border rounded p-2'
             >
-              <option value="">All</option>
+              <option value=''>All</option>
               {categories.map((cat) => (
                 <option key={cat} value={cat}>
                   {cat}
                 </option>
               ))}
             </select>
-            <label className="font-medium ml-4">Sort by:</label>
+            <label className='font-medium ml-4'>Sort by:</label>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="border rounded p-2"
+              className='border rounded p-2'
             >
-              <option value="date">Date</option>
-              <option value="category">Category</option>
-              <option value="leader">Leader</option>
+              <option value='date'>Date</option>
+              <option value='category'>Category</option>
+              <option value='leader'>Leader</option>
             </select>
-            <label className="font-medium ml-4">Search:</label>
+            <label className='font-medium ml-4'>Search:</label>
             <Input
-              type="text"
+              type='text'
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              placeholder="Search leader, runner-up, or notes"
-              className="w-64"
+              placeholder='Search leader, runner-up, or notes'
+              className='w-64'
             />
           </div>
           <Table>
@@ -147,20 +155,20 @@ export default function AIDashboard() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedEntries.map((entry, index) => (
-                <TableRow key={index}>
+              {sortedEntries.map((entry) => (
+                <TableRow key={entry.id}>
                   <TableCell>
                     <Input
-                      type="date"
-                      value={new Date(entry.date).toISOString().split("T")[0]}
-                      onChange={(e) => handleChange(index, "date", e.target.value)}
+                      type='date'
+                      value={new Date(entry.date).toISOString().split('T')[0]}
+                      onChange={(e) => handleChange(entry.id, 'date', e.target.value)}
                     />
                   </TableCell>
                   <TableCell>
                     <select
                       value={entry.category}
-                      onChange={(e) => handleChange(index, "category", e.target.value)}
-                      className="border rounded p-2 w-full"
+                      onChange={(e) => handleChange(entry.id, 'category', e.target.value)}
+                      className='border rounded p-2 w-full'
                     >
                       {categories.map((cat) => (
                         <option key={cat} value={cat}>
@@ -173,31 +181,31 @@ export default function AIDashboard() {
                     <Input
                       value={entry.leader}
                       className={getLeaderColor(entry.leader)}
-                      onChange={(e) => handleChange(index, "leader", e.target.value)}
+                      onChange={(e) => handleChange(entry.id, 'leader', e.target.value)}
                     />
                   </TableCell>
                   <TableCell>
                     <Input
                       value={entry.runnerUp}
-                      onChange={(e) => handleChange(index, "runnerUp", e.target.value)}
+                      onChange={(e) => handleChange(entry.id, 'runnerUp', e.target.value)}
                     />
                   </TableCell>
                   <TableCell>
                     <Input
                       value={entry.notes}
-                      onChange={(e) => handleChange(index, "notes", e.target.value)}
+                      onChange={(e) => handleChange(entry.id, 'notes', e.target.value)}
                     />
                   </TableCell>
                   <TableCell>
-                    <Button variant="ghost" onClick={() => deleteRow(index)}>
-                      <Trash2 className="w-4 h-4" />
+                    <Button variant='ghost' onClick={() => deleteRow(entry.id)}>
+                      <Trash2 className='w-4 h-4' />
                     </Button>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-          <div className="mt-4">
+          <div className='mt-4'>
             <Button onClick={addRow}>Add Row</Button>
           </div>
         </CardContent>
