@@ -10,7 +10,7 @@ import {
   TableRow,
 } from '../components/ui/table';
 import { Input } from '../components/ui/input';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Plus } from 'lucide-react';
 
 const categories = [
   'Foundation Models',
@@ -23,6 +23,30 @@ const categories = [
   'Accuracy/Evaluation Benchmarks',
   'Tool Ecosystem',
   'Safety & Alignment',
+];
+
+const defaultAITools = [
+  'GPT-4',
+  'GPT-4 Turbo',
+  'Claude 3 Opus',
+  'Claude 3 Sonnet',
+  'Gemini Pro',
+  'Gemini Ultra',
+  'Llama 2',
+  'Mistral Large',
+  'Code Llama',
+  'StarCoder',
+  'DALL·E 3',
+  'Midjourney V6',
+  'Stable Diffusion XL',
+  'Anthropic Claude',
+  'Palm 2',
+  'Copilot',
+  'CodeWhisperer',
+  'Bard',
+  'Mixtral 8x7B',
+  'Yi-34B',
+  'Qwen-72B',
 ];
 
 const generateId = () => '_' + Math.random().toString(36).substr(2, 9);
@@ -45,6 +69,75 @@ const formatDateTime = (date) => {
   const hours = String(d.getHours()).padStart(2, '0');
   const minutes = String(d.getMinutes()).padStart(2, '0');
   return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+const CreatableSelect = ({ value, onChange, options, placeholder, className }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+
+  const handleNewOption = () => {
+    if (inputValue.trim()) {
+      onChange(inputValue.trim());
+      setIsEditing(false);
+      setInputValue('');
+    }
+  };
+
+  if (isEditing) {
+    return (
+      <div className="flex gap-1">
+        <Input
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder="Type and press Enter"
+          className={className}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleNewOption();
+            } else if (e.key === 'Escape') {
+              setIsEditing(false);
+              setInputValue('');
+            }
+          }}
+          autoFocus
+        />
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setIsEditing(false);
+            setInputValue('');
+          }}
+        >
+          ✕
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex gap-1">
+      <select
+        value={value}
+        onChange={(e) => {
+          if (e.target.value === 'create-new') {
+            setIsEditing(true);
+          } else {
+            onChange(e.target.value);
+          }
+        }}
+        className={`border rounded p-2 w-full ${className}`}
+      >
+        <option value="">{placeholder}</option>
+        {options.sort().map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+        <option value="create-new">+ Add new option...</option>
+      </select>
+    </div>
+  );
 };
 
 export default function AIDashboard() {
@@ -70,10 +163,18 @@ export default function AIDashboard() {
   const [sortBy, setSortBy] = useState('date');
   const [searchText, setSearchText] = useState('');
   const [editingDateId, setEditingDateId] = useState(null);
+  const [aiTools, setAiTools] = useState(() => {
+    const saved = localStorage.getItem('aiTools');
+    return saved ? JSON.parse(saved) : defaultAITools;
+  });
 
   useEffect(() => {
     localStorage.setItem('aiLeaderboardEntries', JSON.stringify(entries));
   }, [entries]);
+
+  useEffect(() => {
+    localStorage.setItem('aiTools', JSON.stringify(aiTools));
+  }, [aiTools]);
 
   const handleChange = (id, key, value) => {
     const updated = entries.map(entry =>
@@ -87,6 +188,11 @@ export default function AIDashboard() {
         : entry
     );
     setEntries(updated);
+
+    // Add new AI tool to the list if it doesn't exist
+    if ((key === 'leader' || key === 'runnerUp') && value && !aiTools.includes(value)) {
+      setAiTools([...aiTools, value]);
+    }
   };
 
   const addRow = () => {
@@ -221,16 +327,20 @@ export default function AIDashboard() {
                     </select>
                   </TableCell>
                   <TableCell>
-                    <Input
+                    <CreatableSelect
                       value={entry.leader}
+                      onChange={(value) => handleChange(entry.id, 'leader', value)}
+                      options={aiTools}
+                      placeholder="Select or create leader..."
                       className={getLeaderColor(entry.leader)}
-                      onChange={(e) => handleChange(entry.id, 'leader', e.target.value)}
                     />
                   </TableCell>
                   <TableCell>
-                    <Input
+                    <CreatableSelect
                       value={entry.runnerUp}
-                      onChange={(e) => handleChange(entry.id, 'runnerUp', e.target.value)}
+                      onChange={(value) => handleChange(entry.id, 'runnerUp', value)}
+                      options={aiTools}
+                      placeholder="Select or create runner-up..."
                     />
                   </TableCell>
                   <TableCell>
