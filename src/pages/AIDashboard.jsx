@@ -27,6 +27,19 @@ const categories = [
 
 const generateId = () => '_' + Math.random().toString(36).substr(2, 9);
 
+const formatDate = (date) => {
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }).format(new Date(date));
+};
+
+const formatDateTime = (date) => {
+  const d = new Date(date);
+  return d.toISOString().slice(0, 16); // Format as YYYY-MM-DDThh:mm
+};
+
 export default function AIDashboard() {
   const [entries, setEntries] = useState(() => {
     const saved = localStorage.getItem('aiLeaderboardEntries');
@@ -48,6 +61,7 @@ export default function AIDashboard() {
   const [filterCategory, setFilterCategory] = useState('');
   const [sortBy, setSortBy] = useState('date');
   const [searchText, setSearchText] = useState('');
+  const [editingDateId, setEditingDateId] = useState(null);
 
   useEffect(() => {
     localStorage.setItem('aiLeaderboardEntries', JSON.stringify(entries));
@@ -87,6 +101,14 @@ export default function AIDashboard() {
     if (top > 3) return 'text-green-600 font-semibold';
     if (top > 1) return 'text-yellow-600';
     return 'text-black';
+  };
+
+  const handleDateClick = (id) => {
+    setEditingDateId(id);
+  };
+
+  const handleDateBlur = () => {
+    setEditingDateId(null);
   };
 
   const filteredEntries = entries.filter((entry) => {
@@ -157,12 +179,20 @@ export default function AIDashboard() {
             <TableBody>
               {sortedEntries.map((entry) => (
                 <TableRow key={entry.id}>
-                  <TableCell>
-                    <Input
-                      type='date'
-                      value={new Date(entry.date).toISOString().split('T')[0]}
-                      onChange={(e) => handleChange(entry.id, 'date', e.target.value)}
-                    />
+                  <TableCell onClick={() => handleDateClick(entry.id)}>
+                    {editingDateId === entry.id ? (
+                      <Input
+                        type='datetime-local'
+                        value={formatDateTime(entry.date)}
+                        onChange={(e) => handleChange(entry.id, 'date', e.target.value)}
+                        onBlur={handleDateBlur}
+                        autoFocus
+                      />
+                    ) : (
+                      <div className='cursor-pointer'>
+                        {formatDate(entry.date)}
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell>
                     <select
