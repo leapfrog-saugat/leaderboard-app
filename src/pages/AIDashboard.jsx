@@ -28,16 +28,23 @@ const categories = [
 const generateId = () => '_' + Math.random().toString(36).substr(2, 9);
 
 const formatDate = (date) => {
+  const d = new Date(date);
   return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
-  }).format(new Date(date));
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+  }).format(d);
 };
 
 const formatDateTime = (date) => {
   const d = new Date(date);
-  return d.toISOString().slice(0, 16); // Format as YYYY-MM-DDThh:mm
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
 export default function AIDashboard() {
@@ -46,7 +53,7 @@ export default function AIDashboard() {
     const initial = saved
       ? JSON.parse(saved)
       : [{
-          date: new Date(),
+          date: new Date().toISOString(),
           category: categories[0],
           leader: '',
           runnerUp: '',
@@ -55,6 +62,7 @@ export default function AIDashboard() {
     return initial.map(entry => ({
       ...entry,
       id: entry.id || generateId(),
+      date: entry.date || new Date().toISOString()
     }));
   });
 
@@ -70,7 +78,12 @@ export default function AIDashboard() {
   const handleChange = (id, key, value) => {
     const updated = entries.map(entry =>
       entry.id === id
-        ? { ...entry, [key]: key === 'date' ? new Date(value) : value }
+        ? { 
+            ...entry, 
+            [key]: key === 'date' 
+              ? new Date(value).toISOString()
+              : value 
+          }
         : entry
     );
     setEntries(updated);
@@ -81,7 +94,7 @@ export default function AIDashboard() {
       ...entries,
       {
         id: generateId(),
-        date: new Date(),
+        date: new Date().toISOString(),
         category: categories[0],
         leader: '',
         runnerUp: '',
